@@ -1,16 +1,15 @@
 import sys
 import secrets
-import re
+
+WISHLIST_LOWER = 'abcdefghjkmnprstuwxyz'
+WISHLIST_HIGHER = 'ACDEFGHJKLMNPQRTUVWXYZ'
+WISHLIST_DIGITS = '123456789'
+WISHLIST_FULL = WISHLIST_LOWER + WISHLIST_HIGHER + WISHLIST_DIGITS
 
 def generate_secure_string(length, wishlist):
     return ''.join(secrets.choice(wishlist) for _ in range(length))
 
 def main():
-    wishlist_lower = 'abcdefghjkmnprstuwxyz'
-    wishlist_higher = 'ACDEFGHJKLMNPQRTUVWXYZ'
-    wishlist_digits = '123456789'
-    wishlist_full = wishlist_lower + wishlist_higher + wishlist_digits
-
     try:
         length = int(sys.argv[1]) if len(sys.argv) > 1 else 12
         if length < 6:
@@ -20,14 +19,14 @@ def main():
     except ValueError:
         length = 12
 
-    main_part = generate_secure_string(length, wishlist_full)
+    main_part = generate_secure_string(length, WISHLIST_FULL)
 
-    char_l = generate_secure_string(1, wishlist_lower)
-    char_h = generate_secure_string(1, wishlist_higher)
-    digits = generate_secure_string(2, wishlist_digits)
+    char_l = generate_secure_string(1, WISHLIST_LOWER)
+    char_h = generate_secure_string(1, WISHLIST_HIGHER)
+    digits = generate_secure_string(2, WISHLIST_DIGITS)
     suffix = f"-{char_l}{char_h}{digits}"
 
-    parts = re.findall('.{1,6}', main_part)
+    parts = [main_part[i:i + 6] for i in range(0, len(main_part), 6)]
     formatted_main = "-".join(parts)
 
     final_pwd = formatted_main + suffix
