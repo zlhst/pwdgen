@@ -51,8 +51,8 @@
     </div>
     <div style="margin-bottom: 40px;margin-top: 10px;" class="form-group row what-to-do">
       <div class="col-md-12">
-        <button onclick="window.location.href=window.location.href" type="button" class="generate-button2" id="refresh-button01">Refresh</button>
-        <input onclick="CopyToClipboard('pwd-gen-result'); MsgWait(); return false;" class="generate-button2" id="copy-button01" value="Copy" type="button">
+        <button type="button" class="generate-button2" id="refresh-button01">Refresh</button>
+        <input class="generate-button2" id="copy-button01" value="Copy" type="button">
       </div>
     </div>
 
@@ -95,41 +95,47 @@
       const wishlistDigits = '123456789';
       const wishlistFull = wishlistLower + wishlistHigher + wishlistDigits;
 
-      var generatePassword = (length, wishlist = wishlistFull) =>
+      const generatePassword = (length, wishlist = wishlistFull) =>
         Array.from(crypto.getRandomValues(new Uint32Array(length)))
           .map((x) => wishlist[x % wishlist.length])
           .join('');
 
-      var generatePasswordDigit = (length = 2, wishlist = wishlistDigits) =>
+      const generatePasswordDigit = (length = 2, wishlist = wishlistDigits) =>
         Array.from(crypto.getRandomValues(new Uint32Array(length)))
           .map((x) => wishlist[x % wishlist.length])
           .join('');
 
-      var generatePasswordLower = (length = 1, wishlist = wishlistLower) =>
+      const generatePasswordLower = (length = 1, wishlist = wishlistLower) =>
         Array.from(crypto.getRandomValues(new Uint32Array(length)))
           .map((x) => wishlist[x % wishlist.length])
           .join('');
 
-      var generatePasswordHigher = (length = 1, wishlist = wishlistHigher) =>
+      const generatePasswordHigher = (length = 1, wishlist = wishlistHigher) =>
         Array.from(crypto.getRandomValues(new Uint32Array(length)))
           .map((x) => wishlist[x % wishlist.length])
           .join('');
 
-      let pLength = parseInt(urlParams.get('length'));
+      let pLength = parseInt(urlParams.get('length'), 10);
       if (isNaN(pLength) || pLength < 6) pLength = 12;
       if (pLength > 1024) pLength = 1024;
 
-      var new_var = generatePassword(pLength);
-      var pwd_digits = generatePasswordDigit();
-      var parts = new_var.match(/.{1,6}/g);
-      var new_pwd_value = parts.join("-");
-      var final_pwd = new_pwd_value + "-" + generatePasswordLower() + generatePasswordHigher() + pwd_digits;
+      const generateAndRenderPassword = () => {
+        const mainPasswordPart = generatePassword(pLength);
+        const digitsPart = generatePasswordDigit();
+        const groupedParts = mainPasswordPart.match(/.{1,6}/g);
+        const groupedMain = groupedParts.join("-");
+        const finalPassword = groupedMain + "-" + generatePasswordLower() + generatePasswordHigher() + digitsPart;
+        document.getElementById("pwd-gen-result").innerText = finalPassword.trim();
+      };
 
-      document.getElementById("pwd-gen-result").innerText = final_pwd.trim();
+      async function copyToClipboard(id) {
+        const text = document.getElementById(id).innerText.trim();
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
 
-      function CopyToClipboard(id) {
-        var text = document.getElementById(id).innerText.trim();
-        var dummy = document.createElement("textarea");
+        const dummy = document.createElement("textarea");
         document.body.appendChild(dummy);
         dummy.value = text;
         dummy.select();
@@ -144,10 +150,18 @@
         const originalVal = copyButton.value;
         copyButton.value = "Copied";
         copyButton.classList.add("copied");
-        await delay(950);
+        await delay(520);
         copyButton.value = originalVal;
         copyButton.classList.remove("copied");
       };
+
+      document.getElementById("refresh-button01").addEventListener("click", generateAndRenderPassword);
+      document.getElementById("copy-button01").addEventListener("click", async () => {
+        await copyToClipboard("pwd-gen-result");
+        await MsgWait();
+      });
+
+      generateAndRenderPassword();
     </script>
   </body>
 </html>
