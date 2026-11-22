@@ -1,168 +1,217 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow, noarchive">
-	<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <title>pwd</title>
-    <style id="custom-theme">
+    <style>
+      :root {
+        --bg: #2C3333;
+        --txt: #AFB3AF;
+        --accent: #2f6a32;
+        --accent-txt: #ffffff;
+        --btn: #b3b3b3;
+        --btn-txt: #1d1d1b;
+      }
+
       body {
         font-family: Consolas, monaco, monospace;
         font-size: 1.8em;
-        color: #AFB3AF;
-        background-color: #2C3333;
+        color: var(--txt);
+        background-color: var(--bg);
+        margin: 24px 16px;
       }
-      td {
-        border: 2px dotted #2f6a32;
+
+      .pwd-box {
+        display: inline-block;
+        max-width: 100%;
+        box-sizing: border-box;
+        border: 2px dotted var(--accent);
         border-radius: 14px;
-        padding: 8px;
+        padding: 10px 14px;
         font-size: 0.8em;
+        color: var(--txt);
+        overflow-wrap: anywhere;
       }
-      .generate-button2 {
+
+      .actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        font-family: inherit;
         font-size: 0.6em;
-        color: #1d1d1b;
-        background-color: #b3b3b3;
+        color: var(--btn-txt);
+        background-color: var(--btn);
         width: 115px;
         padding: 8px;
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        transition: background-color 0.3s, color 0.3s;
+        transition: filter 0.2s, background-color 0.2s, color 0.2s;
       }
-      .generate-button2:hover {
-        background-color: #999999;
-        color: #1d1d1b;
+
+      .btn:hover {
+        filter: brightness(0.9);
       }
-      .copied {
-        background-color: #2f6a32 !important;
-        color: white !important;
+
+      .btn.copied {
+        background-color: var(--accent);
+        color: var(--accent-txt);
       }
     </style>
   </head>
   <body>
-    <br>
-    <div class="content-to-copy" id="pwd-gen">
-      <table>
-        <tbody>
-          <tr>
-            <td id="pwd-gen-result">Create password</td>
-          </tr>
-        </tbody>
-      </table>
+    <div id="pwd-gen">
+      <div class="pwd-box" id="pwd-gen-result">Create password</div>
     </div>
-    <div style="margin-bottom: 40px;margin-top: 10px;" class="form-group row what-to-do">
-      <div class="col-md-12">
-        <button type="button" class="generate-button2" id="refresh-button01">Refresh</button>
-        <input class="generate-button2" id="copy-button01" value="Copy" type="button">
-      </div>
+    <div class="actions">
+      <button type="button" class="btn" id="refresh-button01">Refresh</button>
+      <button type="button" class="btn" id="copy-button01">Copy</button>
     </div>
 
     <script>
       const urlParams = new URLSearchParams(window.location.search);
-      const styleParam = urlParams.get('style');
+      const styleParam = urlParams.get("style");
 
       const themes = {
-        "1": { bg: "#1A1A1B", txt: "#D7DADC", accent: "#FF4500", btn: "#FFFFFF" },
-        "2": { bg: "#002B36", txt: "#839496", accent: "#2AA198", btn: "#93A1A1" },
-        "3": { bg: "#282A36", txt: "#F8F8F2", accent: "#BD93F9", btn: "#6272A4" },
-        "4": { bg: "#0F111A", txt: "#8F93A2", accent: "#80CBC4", btn: "#717CB4" },
-        "5": { bg: "#2B213A", txt: "#E5E5E5", accent: "#FF5E81", btn: "#BD93F9" },
-        "6": { bg: "#1B2838", txt: "#C6D4DF", accent: "#66C0F4", btn: "#2A475E" },
-        "7": { bg: "#FDF6E3", txt: "#657B83", accent: "#B58900", btn: "#EEE8D5" },
-        "8": { bg: "#000000", txt: "#FFFFFF", accent: "#00FF00", btn: "#333333" },
-        "9": { bg: "#FAF0E6", txt: "#3E2723", accent: "#A1887F", btn: "#D7CCC8" },
+        "1":  { bg: "#1A1A1B", txt: "#D7DADC", accent: "#FF4500", btn: "#FFFFFF" },
+        "2":  { bg: "#002B36", txt: "#839496", accent: "#2AA198", btn: "#93A1A1" },
+        "3":  { bg: "#282A36", txt: "#F8F8F2", accent: "#BD93F9", btn: "#6272A4" },
+        "4":  { bg: "#0F111A", txt: "#8F93A2", accent: "#80CBC4", btn: "#717CB4" },
+        "5":  { bg: "#2B213A", txt: "#E5E5E5", accent: "#FF5E81", btn: "#BD93F9" },
+        "6":  { bg: "#1B2838", txt: "#C6D4DF", accent: "#66C0F4", btn: "#2A475E" },
+        "7":  { bg: "#FDF6E3", txt: "#657B83", accent: "#B58900", btn: "#EEE8D5" },
+        "8":  { bg: "#000000", txt: "#FFFFFF", accent: "#00FF00", btn: "#333333" },
+        "9":  { bg: "#FAF0E6", txt: "#3E2723", accent: "#A1887F", btn: "#D7CCC8" },
         "10": { bg: "#0A0E14", txt: "#B3B1AD", accent: "#E6B450", btn: "#39BAE6" },
         "11": { bg: "#263238", txt: "#ECEFF1", accent: "#FFB300", btn: "#546E7A" },
-        "12": { bg: "#292D3E", txt: "#A6ACCD", accent: "#C792EA", btn: "#82AAFF" },       
+        "12": { bg: "#292D3E", txt: "#A6ACCD", accent: "#C792EA", btn: "#82AAFF" },
         "13": { bg: "#2D2D2D", txt: "#CCCCCC", accent: "#F92672", btn: "#66D9EF" },
         "14": { bg: "#FFF8E1", txt: "#37474F", accent: "#FF6F00", btn: "#FFE082" },
         "15": { bg: "#1A1B26", txt: "#C0CAF5", accent: "#7AA2F7", btn: "#BB9AF7" },
         "16": { bg: "#1D1D1B", txt: "#B3B3B3", accent: "#2F6A32", btn: "#808080" }
       };
 
-      if (styleParam && themes[styleParam]) {
-        const theme = themes[styleParam];
-        const styleSheet = document.getElementById('custom-theme');
-        styleSheet.innerHTML = `
-          body { font-family: Consolas, monaco, monospace; font-size: 1.8em; color: ${theme.txt}; background-color: ${theme.bg}; }
-          td { border: 3px dotted ${theme.accent}; border-radius: 14px; padding: 12px; font-size: 0.8em; color: ${theme.txt}; }
-          .generate-button2 { font-size: 0.6em; color: #1d1d1b; background-color: ${theme.btn}; width: 115px; padding: 8px; border: none; border-radius: 8px; cursor: pointer; }
-          .copied { background-color: ${theme.accent} !important; color: white !important; }
-        `;
-      }
-
-      const wishlistLower = 'abcdefghjkmnprstuwxyz';
-      const wishlistHigher = 'ACDEFGHJKLMNPQRTUVWXYZ';
-      const wishlistDigits = '123456789';
-      const wishlistFull = wishlistLower + wishlistHigher + wishlistDigits;
-
-      const generatePassword = (length, wishlist = wishlistFull) =>
-        Array.from(crypto.getRandomValues(new Uint32Array(length)))
-          .map((x) => wishlist[x % wishlist.length])
-          .join('');
-
-      const generatePasswordDigit = (length = 2, wishlist = wishlistDigits) =>
-        Array.from(crypto.getRandomValues(new Uint32Array(length)))
-          .map((x) => wishlist[x % wishlist.length])
-          .join('');
-
-      const generatePasswordLower = (length = 1, wishlist = wishlistLower) =>
-        Array.from(crypto.getRandomValues(new Uint32Array(length)))
-          .map((x) => wishlist[x % wishlist.length])
-          .join('');
-
-      const generatePasswordHigher = (length = 1, wishlist = wishlistHigher) =>
-        Array.from(crypto.getRandomValues(new Uint32Array(length)))
-          .map((x) => wishlist[x % wishlist.length])
-          .join('');
-
-      let pLength = parseInt(urlParams.get('length'), 10);
-      if (isNaN(pLength) || pLength < 6) pLength = 12;
-      if (pLength > 1024) pLength = 1024;
-
-      const generateAndRenderPassword = () => {
-        const mainPasswordPart = generatePassword(pLength);
-        const digitsPart = generatePasswordDigit();
-        const groupedParts = mainPasswordPart.match(/.{1,6}/g);
-        const groupedMain = groupedParts.join("-");
-        const finalPassword = groupedMain + "-" + generatePasswordLower() + generatePasswordHigher() + digitsPart;
-        document.getElementById("pwd-gen-result").innerText = finalPassword.trim();
+      const contrastText = (hex) => {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance > 0.55 ? "#1d1d1b" : "#ffffff";
       };
 
-      async function copyToClipboard(id) {
-        const text = document.getElementById(id).innerText.trim();
+      if (styleParam && themes[styleParam]) {
+        const theme = themes[styleParam];
+        const root = document.documentElement.style;
+        root.setProperty("--bg", theme.bg);
+        root.setProperty("--txt", theme.txt);
+        root.setProperty("--accent", theme.accent);
+        root.setProperty("--accent-txt", contrastText(theme.accent));
+        root.setProperty("--btn", theme.btn);
+        root.setProperty("--btn-txt", contrastText(theme.btn));
+      }
+
+      const WISHLIST_LOWER = "abcdefghjkmnprstuwxyz";
+      const WISHLIST_UPPER = "ACDEFGHJKLMNPQRTUVWXYZ";
+      const WISHLIST_DIGITS = "123456789";
+      const WISHLIST_FULL = WISHLIST_LOWER + WISHLIST_UPPER + WISHLIST_DIGITS;
+
+      const DEFAULT_LENGTH = 18;
+      const MIN_LENGTH = 8;
+      const MAX_LENGTH = 1024;
+      const GROUP_SIZE = 6;
+      const SUFFIX_LENGTH = 5; // '-' + 1 lower + 1 upper + 2 digits
+
+      const randomChar = (wishlist) => {
+        const limit = Math.floor(0x100000000 / wishlist.length) * wishlist.length;
+        const buf = new Uint32Array(1);
+        let value;
+        do {
+          crypto.getRandomValues(buf);
+          value = buf[0];
+        } while (value >= limit);
+        return wishlist[value % wishlist.length];
+      };
+
+      const parseLength = (rawValue) => {
+        if (!rawValue || !/^\d+$/.test(rawValue.trim())) return DEFAULT_LENGTH;
+        const length = parseInt(rawValue, 10);
+        if (length < MIN_LENGTH) return DEFAULT_LENGTH;
+        if (length > MAX_LENGTH) return MAX_LENGTH;
+        return length;
+      };
+
+      const generatePassword = (length) => {
+        const mainLength = length - SUFFIX_LENGTH;
+        let main = "";
+
+        for (let i = 0; i < mainLength; i++) {
+          if ((i + 1) % (GROUP_SIZE + 1) === 0 && i !== mainLength - 1) {
+            main += "-";
+          } else {
+            main += randomChar(WISHLIST_FULL);
+          }
+        }
+
+        const charL = randomChar(WISHLIST_LOWER);
+        const charU = randomChar(WISHLIST_UPPER);
+        const digits = randomChar(WISHLIST_DIGITS) + randomChar(WISHLIST_DIGITS);
+        return `${main}-${charL}${charU}${digits}`;
+      };
+
+      const passwordLength = parseLength(urlParams.get("length"));
+      const resultEl = document.getElementById("pwd-gen-result");
+      const refreshBtn = document.getElementById("refresh-button01");
+      const copyBtn = document.getElementById("copy-button01");
+
+      const renderPassword = () => {
+        resultEl.textContent = generatePassword(passwordLength);
+      };
+
+      const copyToClipboard = async (text) => {
         if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(text);
-          return;
+          try {
+            await navigator.clipboard.writeText(text);
+            return;
+          } catch (_) {
+            // Fall back to execCommand below
+          }
         }
 
         const dummy = document.createElement("textarea");
-        document.body.appendChild(dummy);
         dummy.value = text;
+        dummy.style.position = "fixed";
+        dummy.style.opacity = "0";
+        document.body.appendChild(dummy);
         dummy.select();
         document.execCommand("copy");
         document.body.removeChild(dummy);
-      }
-
-      const delay = (ms) => new Promise((res) => setTimeout(res, ms));
-
-      const MsgWait = async () => {
-        const copyButton = document.getElementById("copy-button01");
-        const originalVal = copyButton.value;
-        copyButton.value = "Copied";
-        copyButton.classList.add("copied");
-        await delay(520);
-        copyButton.value = originalVal;
-        copyButton.classList.remove("copied");
       };
 
-      document.getElementById("refresh-button01").addEventListener("click", generateAndRenderPassword);
-      document.getElementById("copy-button01").addEventListener("click", async () => {
-        await copyToClipboard("pwd-gen-result");
-        await MsgWait();
+      let copyTimer = null;
+      const showCopiedFeedback = () => {
+        copyBtn.textContent = "Copied";
+        copyBtn.classList.add("copied");
+        clearTimeout(copyTimer);
+        copyTimer = setTimeout(() => {
+          copyBtn.textContent = "Copy";
+          copyBtn.classList.remove("copied");
+        }, 520);
+      };
+
+      refreshBtn.addEventListener("click", renderPassword);
+      copyBtn.addEventListener("click", async () => {
+        await copyToClipboard(resultEl.textContent.trim());
+        showCopiedFeedback();
       });
 
-      generateAndRenderPassword();
+      renderPassword();
     </script>
   </body>
 </html>

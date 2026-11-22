@@ -1,36 +1,92 @@
-import sys
+#!/usr/bin/env python3
+"""Human-readable secure password generator."""
+
+import argparse
 import secrets
+from typing import List, Optional
 
-WISHLIST_LOWER = 'abcdefghjkmnprstuwxyz'
-WISHLIST_HIGHER = 'ACDEFGHJKLMNPQRTUVWXYZ'
-WISHLIST_DIGITS = '123456789'
-WISHLIST_FULL = WISHLIST_LOWER + WISHLIST_HIGHER + WISHLIST_DIGITS
+WISHLIST_LOWER = "abcdefghjkmnprstuwxyz"
+WISHLIST_UPPER = "ACDEFGHJKLMNPQRTUVWXYZ"
+WISHLIST_DIGITS = "123456789"
+WISHLIST_FULL = WISHLIST_LOWER + WISHLIST_UPPER + WISHLIST_DIGITS
 
-def generate_secure_string(length, wishlist):
-    return ''.join(secrets.choice(wishlist) for _ in range(length))
+DEFAULT_LENGTH = 18
+MIN_LENGTH = 8
+MAX_LENGTH = 1024
+DEFAULT_COUNT = 1
+MAX_COUNT = 1000
+GROUP_SIZE = 6
+SUFFIX_LENGTH = 5  # '-' + 1 lower + 1 upper + 2 digits
 
-def main():
+
+def parse_length(raw_value: Optional[str]) -> int:
+    if raw_value is None:
+        return DEFAULT_LENGTH
     try:
-        length = int(sys.argv[1]) if len(sys.argv) > 1 else 12
-        if length < 6:
-            length = 12
-        if length > 1024:
-            length = 1024
+        length = int(raw_value)
     except ValueError:
-        length = 12
+        return DEFAULT_LENGTH
+    if length < MIN_LENGTH:
+        return DEFAULT_LENGTH
+    if length > MAX_LENGTH:
+        return MAX_LENGTH
+    return length
 
-    main_part = generate_secure_string(length, WISHLIST_FULL)
 
-    char_l = generate_secure_string(1, WISHLIST_LOWER)
-    char_h = generate_secure_string(1, WISHLIST_HIGHER)
-    digits = generate_secure_string(2, WISHLIST_DIGITS)
-    suffix = f"-{char_l}{char_h}{digits}"
+def parse_count(raw_value: Optional[str]) -> int:
+    if raw_value is None:
+        return DEFAULT_COUNT
+    try:
+        count = int(raw_value)
+    except ValueError:
+        return DEFAULT_COUNT
+    if count < 1:
+        return DEFAULT_COUNT
+    if count > MAX_COUNT:
+        return MAX_COUNT
+    return count
 
-    parts = [main_part[i:i + 6] for i in range(0, len(main_part), 6)]
-    formatted_main = "-".join(parts)
 
-    final_pwd = formatted_main + suffix
-    print(final_pwd)
+def generate_password(length: int = DEFAULT_LENGTH) -> str:
+    main_length = length - SUFFIX_LENGTH
+    chars: List[str] = []
+
+    for i in range(main_length):
+        if (i + 1) % (GROUP_SIZE + 1) == 0 and i != main_length - 1:
+            chars.append("-")
+        else:
+            chars.append(secrets.choice(WISHLIST_FULL))
+
+    char_l = secrets.choice(WISHLIST_LOWER)
+    char_u = secrets.choice(WISHLIST_UPPER)
+    digits = "".join(secrets.choice(WISHLIST_DIGITS) for _ in range(2))
+    return "".join(chars) + f"-{char_l}{char_u}{digits}"
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Generate human-readable secure passwords."
+    )
+    parser.add_argument(
+        "length",
+        nargs="?",
+        default=None,
+        help=f"Total password length ({MIN_LENGTH}-{MAX_LENGTH}, default: {DEFAULT_LENGTH})",
+    )
+    parser.add_argument(
+        "-n",
+        "--count",
+        default=None,
+        help=f"Number of passwords to generate (1-{MAX_COUNT}, default: {DEFAULT_COUNT})",
+    )
+    args = parser.parse_args()
+
+    length = parse_length(args.length)
+    count = parse_count(args.count)
+
+    for _ in range(count):
+        print(generate_password(length))
+
 
 if __name__ == "__main__":
     main()
